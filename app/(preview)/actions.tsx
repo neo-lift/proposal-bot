@@ -9,28 +9,6 @@ import {
 } from "ai/rsc";
 import { ReactNode } from "react";
 import { z } from "zod";
-import { CameraView } from "@/components/camera-view";
-import { HubView } from "@/components/hub-view";
-import { UsageView } from "@/components/usage-view";
-
-export interface Hub {
-  climate: Record<"low" | "high", number>;
-  lights: Array<{ name: string; status: boolean }>;
-  locks: Array<{ name: string; isLocked: boolean }>;
-}
-
-let hub: Hub = {
-  climate: {
-    low: 23,
-    high: 25,
-  },
-  lights: [
-    { name: "patio", status: true },
-    { name: "kitchen", status: false },
-    { name: "garage", status: true },
-  ],
-  locks: [{ name: "back door", isLocked: true }],
-};
 
 const sendMessage = async (message: string) => {
   "use server";
@@ -48,7 +26,7 @@ const sendMessage = async (message: string) => {
   const { value: stream } = await streamUI({
     model: openai("gpt-4o"),
     system: `\
-      - you are a friendly home automation assistant
+      - you are a friendly proposal assistant that helps fetch and view proposals from the Proposales API
       - reply in lower case
     `,
     messages: messages.get() as CoreMessage[],
@@ -67,163 +45,131 @@ const sendMessage = async (message: string) => {
       return textComponent;
     },
     tools: {
-      viewCameras: {
-        description: "view current active cameras",
-        parameters: z.object({}),
-        generate: async function* ({}) {
-          const toolCallId = generateId();
-
-          messages.done([
-            ...(messages.get() as CoreMessage[]),
-            {
-              role: "assistant",
-              content: [
-                {
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: "viewCameras",
-                  args: {},
-                },
-              ],
-            },
-            {
-              role: "tool",
-              content: [
-                {
-                  type: "tool-result",
-                  toolName: "viewCameras",
-                  toolCallId,
-                  result: `The active cameras are currently displayed on the screen`,
-                },
-              ],
-            },
-          ]);
-
-          return <Message role="assistant" content={<CameraView />} />;
-        },
-      },
-      viewHub: {
-        description:
-          "view the hub that contains current quick summary and actions for temperature, lights, and locks",
-        parameters: z.object({}),
-        generate: async function* ({}) {
-          const toolCallId = generateId();
-
-          messages.done([
-            ...(messages.get() as CoreMessage[]),
-            {
-              role: "assistant",
-              content: [
-                {
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: "viewHub",
-                  args: {},
-                },
-              ],
-            },
-            {
-              role: "tool",
-              content: [
-                {
-                  type: "tool-result",
-                  toolName: "viewHub",
-                  toolCallId,
-                  result: hub,
-                },
-              ],
-            },
-          ]);
-
-          return <Message role="assistant" content={<HubView hub={hub} />} />;
-        },
-      },
-      updateHub: {
-        description: "update the hub with new values",
+      getProposal: {
+        description: "Fetch a proposal from the Proposales API by its UUID",
         parameters: z.object({
-          hub: z.object({
-            climate: z.object({
-              low: z.number(),
-              high: z.number(),
-            }),
-            lights: z.array(
-              z.object({ name: z.string(), status: z.boolean() }),
-            ),
-            locks: z.array(
-              z.object({ name: z.string(), isLocked: z.boolean() }),
-            ),
-          }),
+          uuid: z.string().uuid("The UUID must be a valid UUID format"),
         }),
-        generate: async function* ({ hub: newHub }) {
-          hub = newHub;
+        generate: async function* ({ uuid }) {
           const toolCallId = generateId();
 
-          messages.done([
-            ...(messages.get() as CoreMessage[]),
-            {
-              role: "assistant",
-              content: [
-                {
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: "updateHub",
-                  args: { hub },
-                },
-              ],
-            },
-            {
-              role: "tool",
-              content: [
-                {
-                  type: "tool-result",
-                  toolName: "updateHub",
-                  toolCallId,
-                  result: `The hub has been updated with the new values`,
-                },
-              ],
-            },
-          ]);
+          try {
+            const apiKey = process.env.PROPOSALES_API_KEY;
+            const apiBaseUrl =
+              process.env.PROPOSALES_API_BASE_URL ||
+              "https://api.proposales.com";
 
-          return <Message role="assistant" content={<HubView hub={hub} />} />;
-        },
-      },
-      viewUsage: {
-        description: "view current usage for electricity, water, or gas",
-        parameters: z.object({
-          type: z.enum(["electricity", "water", "gas"]),
-        }),
-        generate: async function* ({ type }) {
-          const toolCallId = generateId();
+            if (!apiKey) {
+              throw new Error(
+                "PROPOSALES_API_KEY environment variable is not set",
+              );
+            }
 
-          messages.done([
-            ...(messages.get() as CoreMessage[]),
-            {
-              role: "assistant",
-              content: [
-                {
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: "viewUsage",
-                  args: { type },
-                },
-              ],
-            },
-            {
-              role: "tool",
-              content: [
-                {
-                  type: "tool-result",
-                  toolName: "viewUsage",
-                  toolCallId,
-                  result: `The current usage for ${type} is currently displayed on the screen`,
-                },
-              ],
-            },
-          ]);
+            const response = await fetch(`${apiBaseUrl}/proposals/${uuid}`, {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+            });
 
-          return (
-            <Message role="assistant" content={<UsageView type={type} />} />
-          );
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(
+                `Failed to fetch proposal: ${response.status} ${response.statusText} - ${errorText}`,
+              );
+            }
+
+            const data = await response.json();
+
+            messages.done([
+              ...(messages.get() as CoreMessage[]),
+              {
+                role: "assistant",
+                content: [
+                  {
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: "getProposal",
+                    args: { uuid },
+                  },
+                ],
+              },
+              {
+                role: "tool",
+                content: [
+                  {
+                    type: "tool-result",
+                    toolName: "getProposal",
+                    toolCallId,
+                    result: data,
+                  },
+                ],
+              },
+            ]);
+
+            return (
+              <Message
+                role="assistant"
+                content={
+                  <div className="space-y-2">
+                    <div className="font-semibold">{data.data?.title || "Proposal"}</div>
+                    {data.data?.description_html && (
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: data.data.description_html,
+                        }}
+                      />
+                    )}
+                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Status: {data.data?.status || "Unknown"} | UUID: {uuid}
+                    </div>
+                  </div>
+                }
+              />
+            );
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : "Unknown error occurred";
+
+            messages.done([
+              ...(messages.get() as CoreMessage[]),
+              {
+                role: "assistant",
+                content: [
+                  {
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: "getProposal",
+                    args: { uuid },
+                  },
+                ],
+              },
+              {
+                role: "tool",
+                content: [
+                  {
+                    type: "tool-result",
+                    toolName: "getProposal",
+                    toolCallId,
+                    result: { error: errorMessage },
+                  },
+                ],
+              },
+            ]);
+
+            return (
+              <Message
+                role="assistant"
+                content={
+                  <div className="text-red-600 dark:text-red-400">
+                    Error fetching proposal: {errorMessage}
+                  </div>
+                }
+              />
+            );
+          }
         },
       },
     },

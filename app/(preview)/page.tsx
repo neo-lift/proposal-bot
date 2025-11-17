@@ -5,7 +5,6 @@ import { useActions } from "ai/rsc";
 import { Message } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import { motion } from "framer-motion";
-import { MasonryIcon, VercelIcon } from "@/components/icons";
 import Link from "next/link";
 
 export default function Home() {
@@ -19,17 +18,23 @@ export default function Home() {
     useScrollToBottom<HTMLDivElement>();
 
   const suggestedActions = [
-    { title: "View all", label: "my cameras", action: "View all my cameras" },
-    { title: "Show me", label: "my smart home hub", action: "Show me my smart home hub" },
+    { title: "Create", label: "a new proposal", action: "Create a new proposal" },
+    { title: "View all", label: "my proposals", action: "View all my proposals" },
+    { title: "Show me", label: "my contracts", action: "Show me my contracts" },
     {
-      title: "How much",
-      label: "electricity have I used this month?",
-      action: "Show electricity usage",
+      title: "Set up",
+      label: "webhooks for automation",
+      action: "Set up webhooks for automation",
     },
     {
-      title: "How much",
-      label: "water have I used this month?",
-      action: "Show water usage",
+      title: "Explore",
+      label: "API endpoints",
+      action: "Explore API endpoints",
+    },
+    {
+      title: "View",
+      label: "data entities",
+      action: "View data entities",
     },
   ];
 
@@ -43,27 +48,29 @@ export default function Home() {
           {messages.length === 0 && (
             <motion.div className="h-[350px] px-4 w-full md:w-[500px] md:px-0 pt-20">
               <div className="border rounded-lg p-6 flex flex-col gap-4 text-zinc-500 text-sm dark:text-zinc-400 dark:border-zinc-700">
-                <p className="flex flex-row justify-center gap-4 items-center text-zinc-900 dark:text-zinc-50">
-                  <VercelIcon size={16} />
-                  <span>+</span>
-                  <MasonryIcon />
+                <p className="flex flex-row justify-center gap-4 items-center text-zinc-900 dark:text-zinc-50 text-lg font-semibold">
+                  Proposales™
                 </p>
                 <p>
-                  The streamUI function allows you to stream React Server
-                  Components along with your language model generations to
-                  integrate dynamic user interfaces into your application.
+                  Proposales™ is a web-powered standard to create, send and e-sign proposals & contracts.
+                </p>
+                <p>
+                  The standard uses a JSON schema which means 100% structured data at all times.
+                </p>
+                <p>
+                  Explore our modern APIs & webhooks, enabling you to build automated workflows and send data to any system.
                 </p>
                 <p>
                   {" "}
-                  Learn more about the{" "}
+                  Learn more about{" "}
                   <Link
                     className="text-blue-500 dark:text-blue-400"
-                    href="https://sdk.vercel.ai/docs/ai-sdk-rsc/streaming-react-components"
+                    href="https://docs.proposales.com/introduction"
                     target="_blank"
                   >
-                    streamUI{" "}
+                    Proposales documentation
                   </Link>
-                  hook from Vercel AI SDK.
+                  .
                 </p>
               </div>
             </motion.div>
