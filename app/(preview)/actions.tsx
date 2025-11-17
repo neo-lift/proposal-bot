@@ -45,7 +45,7 @@ const sendMessage = async (message: string) => {
       return textComponent;
     },
     tools: {
-      getProposal: {
+      proposalView: {
         description: "Fetch a proposal from the Proposales API by its UUID",
         parameters: z.object({
           uuid: z.string().uuid("The UUID must be a valid UUID format"),
@@ -54,23 +54,29 @@ const sendMessage = async (message: string) => {
           const toolCallId = generateId();
 
           try {
-            const apiKey = process.env.PROPOSALES_API_KEY;
+            const apiKey = process.env.PROPOSAL_API_KEY;
+            const companyId = process.env.PROPOSAL_COMPANY_ID;
             const apiBaseUrl =
-              process.env.PROPOSALES_API_BASE_URL ||
+              process.env.PROPOSAL_API_BASE_URL ||
               "https://api.proposales.com";
 
             if (!apiKey) {
               throw new Error(
-                "PROPOSALES_API_KEY environment variable is not set",
+                "PROPOSAL_API_KEY environment variable is not set",
               );
             }
 
-            const response = await fetch(`${apiBaseUrl}/proposals/${uuid}`, {
+            const headers: Record<string, string> = {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            };
+
+            if (companyId) {
+              headers["X-Company-Id"] = companyId;
+            }
+            const response = await fetch(`${apiBaseUrl}/v3/proposals/${uuid}`, {
               method: "GET",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
+              headers,
             });
 
             if (!response.ok) {
@@ -90,7 +96,7 @@ const sendMessage = async (message: string) => {
                   {
                     type: "tool-call",
                     toolCallId,
-                    toolName: "getProposal",
+                    toolName: "proposalView",
                     args: { uuid },
                   },
                 ],
@@ -100,7 +106,7 @@ const sendMessage = async (message: string) => {
                 content: [
                   {
                     type: "tool-result",
-                    toolName: "getProposal",
+                    toolName: "proposalView",
                     toolCallId,
                     result: data,
                   },
@@ -141,7 +147,7 @@ const sendMessage = async (message: string) => {
                   {
                     type: "tool-call",
                     toolCallId,
-                    toolName: "getProposal",
+                    toolName: "proposalView",
                     args: { uuid },
                   },
                 ],
@@ -151,7 +157,7 @@ const sendMessage = async (message: string) => {
                 content: [
                   {
                     type: "tool-result",
-                    toolName: "getProposal",
+                    toolName: "proposalView",
                     toolCallId,
                     result: { error: errorMessage },
                   },
