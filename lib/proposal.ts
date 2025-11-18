@@ -1,12 +1,13 @@
 import { openai } from "@ai-sdk/openai";
 import { PROPOSALES_KNOWLEDGE_PACK } from "./knowledge";
-import { PROPOSAL_SYSTEM_PROMPT } from "./prompts";
 import { GenerateProposalArgs } from "./types";
 import { generateText } from "ai";
+import proposalSystemPrompt from "@/prompts/proposal-system-prompt.txt?raw";
 
 export async function generateProposalPayload(args: GenerateProposalArgs) {
   const { rfp } = args;
 
+  const PROPOSAL_SYSTEM_PROMPT = proposalSystemPrompt;
   const response = await generateText({
     model: openai("gpt-4o"),
     system: PROPOSAL_SYSTEM_PROMPT,
