@@ -9,7 +9,10 @@ import {
 } from "ai/rsc";
 import { ReactNode } from "react";
 import { z } from "zod";
-import { getProposalesApiConfig } from "@/lib/proposal";
+import {
+  generateProposalPayload,
+  getProposalesApiConfig,
+} from "@/lib/proposal";
 import { ProposalViewCard } from "@/components/chatbox/proposal-view-card";
 import { ContentListCard } from "@/components/chatbox/contents-list-card";
 import { CompaniesListCard } from "@/components/chatbox/companies-list-card";
@@ -514,7 +517,11 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
         generate: async function* ({ rfp }) {
           const toolCallId = generateId();
           try {
-            const data = await postProposalesApi("/v3/proposals", { rfp });
+            const proposalPayload = await generateProposalPayload({ rfp });
+            const data = await postProposalesApi(
+              "/v3/proposals",
+              proposalPayload,
+            );
 
             messages.done([
               ...(messages.get() as CoreMessage[]),
