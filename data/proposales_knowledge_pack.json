@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "description": "Static Proposales knowledge pack for mapping RFPs to Create Proposal payloads.",
+  "companies": [
+    {
+      "id": 5029,
+      "name": "Grand Riverside Hotel",
+      "currency": "EUR",
+      "tax_mode": "standard",
+      "registration_number": "SE556000-1111",
+      "website_url": "https://grandriverside.example.com",
+      "default_timezone": "Europe/Stockholm",
+      "default_language": "en",
+      "default_sales_contact_email": "anna.sales@grandriverside.example.com"
+    }
+  ],
+  "templates": {
+    "by_company_id": {
+      "5029": [
+        {
+          "title": "Corporate Meeting Template",
+          "uuid": "c00555af-5524-42aa-82f4-e76fde6f3a11",
+          "language": "en",
+		  "background_image_id": 301,
+          "background_image_uuid": "1e51a1d3-6aac-439b-b06f-643b3cdb0327"
+        },
+        {
+          "title": "Wedding & Celebration Template",
+          "uuid": "f1ed3b95-8917-4b11-af51-d1446594c5b3",
+          "language": "en",
+		  "background_image_id": 302,
+          "background_image_uuid": "172f4c17-93a8-423b-85e3-7047e26eb712"
+        },
+		{
+          "title": "Conference & Expo Template",
+          "uuid": "1bf5be12-8739-48da-8e28-d0efed89dcab",
+          "language": "en",
+		  "background_image_id": 303,
+          "background_image_uuid": "668c6bbc-bba5-441d-8cf3-9da6c17bd582"
+        }
+      ]
+    }
+  },
+  "products": {
+    "dinners": [
+      {
+        "category": "dinner",
+        "product_id": 165096,
+        "variation_id": 165023,
+        "title": "Three-Course Seasonal Dinner",
+        "description": "Chef's choice three-course menu with seasonal ingredients. Includes starter, main course, and dessert.",
+        "tags": ["dinner", "three-course", "seasonal"],
+        "default_suitable_for": ["corporate_meeting", "celebration", "group_dining"],
+        "typical_group_size_min": 10,
+        "typical_group_size_max": 80
+      },
+      {
+        "category": "dinner",
+        "product_id": 165097,
+        "variation_id": 165024,
+        "title": "International Buffet Dinner",
+        "description": "Extensive international buffet with salads, hot dishes, live cooking station, and dessert table.",
+        "tags": ["dinner", "buffet"],
+        "default_suitable_for": ["corporate_meeting", "conference", "large_group"],
+        "typical_group_size_min": 20,
+        "typical_group_size_max": 200
+      },
+      {
+        "category": "dinner",
+        "product_id": 165098,
+        "variation_id": 165025,
+        "title": "Vegan Group Dinner",
+        "description": "Plant-based three-course menu, including gluten-free and allergy-friendly options upon request.",
+        "tags": ["dinner", "vegan", "dietary"],
+        "default_suitable_for": ["health_conscious", "vegans", "mixed_dietary_requirements"],
+        "typical_group_size_min": 10,
+        "typical_group_size_max": 60
+      }
+    ],
+    "meeting_rooms": [
+      {
+        "category": "meeting_room",
+        "product_id": 165099,
+        "variation_id": 165026,
+        "title": "Full-Day Meeting Room",
+        "description": "Meeting room with natural daylight, projector, sound system, and whiteboard. Suitable for up to 40 delegates.",
+        "tags": ["meeting_room", "full_day", "plenary"],
+        "capacity_min": 10,
+        "capacity_max": 40,
+        "media": [
+          {
+            "uuid": "uc-img-meetingroom-001",
+            "filename": "meeting-room.jpg"
+          }
+        ]
+      },
+	  {
+        "category": "conference_room",
+        "product_id": 165100,
+        "variation_id": 165027,
+        "title": "Full-Day Conference Room",
+        "description": "Conference room with natural daylight, projector, sound system, and whiteboard. Suitable for up to 400 delegates.",
+        "tags": ["meeting_room", "full_day", "plenary"],
+        "capacity_min": 10,
+        "capacity_max": 40,
+        "media": [
+          {
+            "uuid": "uc-img-meetingroom-001",
+            "filename": "meeting-room.jpg"
+          }
+        ]
+      }
+    ],
+    "coffee_breaks": [
+      {
+        "category": "coffee_break",
+        "product_id": 165101,
+        "variation_id": 165028,
+        "title": "Morning & Afternoon Coffee Break",
+        "description": "Freshly brewed coffee, tea, water, juices, seasonal fruits, pastries, and snacks.",
+        "tags": ["coffee_break", "refreshments"],
+        "capacity_min": 5,
+        "capacity_max": 200,
+        "media": []
+      }
+    ],
+    "accommodation": [
+      {
+        "category": "accommodation",
+        "product_id": 165102,
+        "variation_id": 165029,
+        "title": "Standard Guest Room – Single Use",
+        "description": "Comfortable 18–22 m² guest room with queen bed, WiFi, and breakfast included.",
+        "tags": ["room_night", "standard", "single_use"],
+        "typical_occupancy": 1,
+        "media": [
+          {
+            "uuid": "uc-img-room-std-001",
+            "filename": "standard-room.jpg"
+          }
+        ]
+      }
+    ]
+  },
+  "attachments": [
+    {
+      "id": 337871,
+      "filename": "GrandRiverside_Meeting_Room_Floorplan.pdf",
+      "mime_type": "application/pdf",
+      "public_url": "https://assets.example.com/floorplans/riverside-ballroom.pdf",
+      "recommended_usage": "Add when RFP mentions seating layout, plenary room, or floorplan."
+    },
+    {
+      "id": 337872,
+      "filename": "AV_Pricelist_2025.pdf",
+      "mime_type": "application/pdf",
+      "public_url": "https://assets.example.com/av/av-pricelist-2025.pdf",
+      "recommended_usage": "Add when RFP mentions AV equipment, hybrid setup, or detailed technical requirements."
+    }
+  ],
+  "metadata_schema_examples": {
+    "standard_event_metadata": {
+      "event_name": "ACME Sales Kick-Off 2025",
+      "event_type": "corporate_meeting",
+      "segment": "corporate",
+      "start_date": "2025-03-10",
+      "end_date": "2025-03-12",
+      "nights": 2,
+      "participants": 30,
+      "timezone": "Europe/Stockholm",
+      "rfp_id": 123,
+      "lead_source": "website_form",
+      "internal_owner_email": "anna.sales@grandriverside.example.com"
+    }
+  },
+  "rfp_examples": [
+    {
+      "id": "rfp-acme-sales-kickoff-2025",
+      "source": "website_form",
+      "body": {
+        "email": "lisa.martin@acmecorp.com",
+        "company_name": "ACME Corporation",
+        "first_name": "Lisa",
+        "last_name": "Martin",
+        "phone_number": "+44 20 1234 5678",
+        "message": "We are looking for a venue for a 2-day sales kick-off with 30 participants. We need plenary room, breakout rooms and dinner on both evenings.",
+        "language": "en",
+        "start_date": "2025-03-10",
+        "end_date": "2025-03-12",
+        "is_test": "",
+        "silent_confirmation": ""
+      },
+      "interpretation_hint": {
+        "event_type": "corporate_meeting",
+        "participants": 30,
+        "requires_accommodation": true,
+        "requires_dinner_evenings": 2,
+        "requires_meeting_room_days": 2,
+        "notes": "Two-day sales kick-off, 30 participants, 2 evenings with dinner, need plenary + breakout rooms."
+      }
+    }
+  ],
+  "proposal_examples": [
+    {
+      "id": "proposal-acme-sales-kickoff-2025",
+      "company_id": 5029,
+      "create_proposal_payload": {
+        "company_id": 5029,
+        "language": "en",
+        "contact_email": "anna.sales@grandriverside.example.com",
+        "background_image": {
+          "id": 301,
+          "uuid": "bgimg-corporate-hero-001"
+        },
+        "title_md": "ACME Sales Kick-Off 2025 – Proposal from Grand Riverside Hotel",
+        "description_md": "# Welcome ACME\n<Thank you for considering Grand Riverside Hotel for your 2-day sales kick-off. Below you will find our proposed package including meeting facilities, accommodation, and dinners.>",
+        "recipient": {
+          "first_name": "Lisa",
+          "last_name": "Martin",
+          "email": "lisa.martin@acmecorp.com",
+          "phone": "+44 20 1234 5678",
+          "company_name": "ACME Corporation"
+        },
+        "data": {
+          "event_name": "ACME Sales Kick-Off 2025",
+          "event_type": "corporate_meeting",
+          "start_date": "2025-03-10",
+          "end_date": "2025-03-12",
+          "nights": 2,
+          "participants": 30,
+          "timezone": "Europe/Stockholm",
+          "rfp_id": 123,
+          "lead_source": "website_form",
+          "internal_owner_email": "anna.sales@grandriverside.example.com"
+        },
+        "invoicing_enabled": true,
+        "blocks": [
+          { "content_id": 7004 },
+          { "content_id": 7005 },
+          { "content_id": 7001 },
+          { "content_id": 7006 }
+        ],
+        "attachments": [
+          {
+            "mime_type": "application/pdf",
+            "name": "Meeting Room Floorplan",
+            "url": "https://assets.example.com/floorplans/riverside-ballroom.pdf"
+          },
+          {
+            "mime_type": "application/pdf",
+            "name": "AV Price List 2025",
+            "url": "https://assets.example.com/av/av-pricelist-2025.pdf"
+          }
+        ]
+      }
+    }
+  ],
+  "mapping_guidelines_summary": {
+    "default_company_id": 101,
+    "default_language": "en",
+    "default_timezone": "Europe/Stockholm",
+    "block_selection_rules": [
+      "If the RFP mentions a corporate meeting, conference, or sales kick-off with daytime sessions, add one Full-Day Conference Room (content_id 7004) per full meeting day.",
+      "If the RFP mentions coffee, snacks, or breaks during the day, add Morning & Afternoon Coffee Break (content_id 7005) per meeting day.",
+      "If the RFP mentions dinner or evening meals, add a suitable dinner content_id per evening: 7001 (plated 3-course), 7002 (buffet), or 7003 (vegan) depending on dietary or style hints.",
+      "If the RFP mentions guests staying overnight, add Standard Guest Room – Single Use (content_id 7006) when accommodation is needed."
+    ],
+    "attachment_selection_rules": [
+      "If the RFP mentions room layout, seating, or floorplan, include the Meeting Room Floorplan attachment.",
+      "If the RFP mentions technical/AV details, hybrid events, or video conferencing, include the AV Price List attachment."
+    ]
+  }
+}

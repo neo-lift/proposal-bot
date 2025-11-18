@@ -52,6 +52,26 @@ async function fetchProposalesApi(endpoint: string) {
   return await response.json();
 }
 
+// POST API helper for creating proposals
+async function postProposalesApi(endpoint: string, body: any) {
+  const { headers, apiBaseUrl } = getProposalesApiConfig();
+
+  const response = await fetch(`${apiBaseUrl}${endpoint}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to create: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  return await response.json();
+}
+
 // Helper function to safely extract string values from localized objects
 function getStringValue(value: any): string | null {
   if (typeof value === "string") {
@@ -626,21 +646,124 @@ const sendMessage = async (message: string) => {
         },
       },
       proposalCreate: {
-        description: "Create a new proposal in the Proposales API",
+        description: "Generate a Proposales Create Proposal JSON payload from an RFP/SFP object.",
         parameters: z.object({
-          title: z.string().min(1, "Title is required"),
-          description: z.string().min(1, "Description is required"),
+          rfp: z.object({
+            customer: z.object({
+              customerName: z.string().min(1, "Customer name is required"),
+              customerEmail: z.string().email("Valid customer email is required"),
+              companyName: z.string().optional(),
+            }),
+            event: z.object({
+              eventType: z.string().min(1, "Event type is required"),
+              startDate: z.string().optional(),
+              endDate: z.string().optional(),
+              guestCount: z.number().optional(),
+              roomsNeeded: z.number().optional(),
+            }),
+            preferences: z.object({
+              meetingSpaces: z.boolean().optional(),
+              catering: z.boolean().optional(),
+              tone: z.string().optional(),
+              additionalBrief: z.string().optional(),
+            }).optional(),
+          }),
         }),
-        generate: async function* ({ title, description }) {
+        generate: async function* ({ rfp }) {
           const toolCallId = generateId();
           try {
-            const data = await fetchProposalesApi(`/v3/proposals?title=${title}&description=${description}`);
-          }
-          catch (error) {
+            const data = await postProposalesApi("/v3/proposals", { rfp });
+
+            messages.done([
+              ...(messages.get() as CoreMessage[]),
+              {
+                role: "assistant",
+                content: [
+                  {
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: "proposalCreate",
+                    args: { rfp },
+                  },
+                ],
+              },
+              {
+                role: "tool",
+                content: [
+                  {
+                    type: "tool-result",
+                    toolName: "proposalCreate",
+                    toolCallId,
+                    result: data,
+                  },
+                ],
+              },
+            ]);
+
+            return (
+              <Message
+                role="assistant"
+                content={
+                  <div className="space-y-2">
+                    <div className="font-semibold text-green-600 dark:text-green-400">
+                      Proposal created successfully!
+                    </div>
+                    {data.data?.title && (
+                      <div className="font-medium">{data.data.title}</div>
+                    )}
+                    {data.data?.uuid && (
+                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        UUID: {data.data.uuid}
+                      </div>
+                    )}
+                    {data.data?.status && (
+                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        Status: {data.data.status}
+                      </div>
+                    )}
+                  </div>
+                }
+              />
+            );
+          } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : "Unknown error occurred";
+
+            messages.done([
+              ...(messages.get() as CoreMessage[]),
+              {
+                role: "assistant",
+                content: [
+                  {
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: "proposalCreate",
+                    args: { rfp },
+                  },
+                ],
+              },
+              {
+                role: "tool",
+                content: [
+                  {
+                    type: "tool-result",
+                    toolName: "proposalCreate",
+                    toolCallId,
+                    result: { error: errorMessage },
+                  },
+                ],
+              },
+            ]);
+
             return (
-              <Message role="assistant" content={<div className="text-red-600 dark:text-red-400">Error creating proposal: {errorMessage}</div>} />
+              <Message
+                role="assistant"
+                content={
+                  <div className="text-red-600 dark:text-red-400">
+                    Error creating proposal: {errorMessage}
+                  </div>
+                }
+              />
             );
           }
         },
