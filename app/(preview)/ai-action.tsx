@@ -11,6 +11,17 @@ import { ReactNode } from "react";
 import { z } from "zod";
 import { getProposalesApiConfig } from "@/lib/proposal";
 
+type TokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens?: number;
+};
+
+type SendMessageResult = {
+  ui: ReactNode;
+  usage: TokenUsage | null;
+};
+
 // Shared API fetch helper
 async function fetchProposalesApiEndpoint(endpoint: string) {
   const { headers, apiBaseUrl } = getProposalesApiConfig();
@@ -68,7 +79,7 @@ function getStringValue(value: any): string | null {
   return null;
 }
 
-const sendMessage = async (message: string) => {
+const sendMessage = async (message: string): Promise<SendMessageResult> => {
   "use server";
 
   const messages = getMutableAIState<typeof AI>("messages");
@@ -80,6 +91,7 @@ const sendMessage = async (message: string) => {
 
   const contentStream = createStreamableValue("");
   const textComponent = <TextStreamMessage content={contentStream.value} />;
+  let latestUsage: TokenUsage | null = null;
 
   const { value: stream } = await streamUI({
     model: openai("gpt-4o"),
@@ -430,6 +442,9 @@ const sendMessage = async (message: string) => {
                     <div className="text-xs text-zinc-400 dark:text-zinc-500">
                       Total companies: {companies.length}
                     </div>
+                    <div className="text-xs text-zinc-400 dark:text-zinc-500">
+                      {latestUsage?.totalTokens && latestUsage?.totalTokens > 0 && <span>Total tokens: {latestUsage?.totalTokens.toLocaleString()}</span>}
+                    </div>
                   </div>
                 }
               />
@@ -747,9 +762,12 @@ const sendMessage = async (message: string) => {
         },
       },
     },
+    onFinish: ({ usage }) => {
+      latestUsage = usage;
+    },
   });
 
-  return stream;
+  return { ui: stream, usage: latestUsage };
 };
 
 export type UIState = Array<ReactNode>;

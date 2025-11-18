@@ -6,12 +6,24 @@ import { Message } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import type { AI } from "./ai-action";
+
+type TokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
+type TokenUsageEntry = TokenUsage & {
+  turn: number;
+};
 
 export default function Home() {
-  const { sendMessage } = useActions();
+  const { sendMessage } = useActions<typeof AI>();
 
   const [input, setInput] = useState<string>("");
   const [messages, setMessages] = useState<Array<ReactNode>>([]);
+  const [usageEntries, setUsageEntries] = useState<Array<TokenUsageEntry>>([]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [messagesContainerRef, messagesEndRef] =
@@ -39,6 +51,17 @@ export default function Home() {
       action: "View a proposal",
     },
   ];
+
+  const recordUsage = (usage: TokenUsage | null | undefined) => {
+    if (!usage) return;
+    setUsageEntries((entries) => [
+      ...entries,
+      {
+        ...usage,
+        turn: entries.length + 1,
+      },
+    ]);
+  };
 
   return (
     <div className="flex flex-row justify-center pb-20 h-dvh bg-white dark:bg-zinc-900">
@@ -101,10 +124,9 @@ export default function Home() {
                         content={action.action}
                       />,
                     ]);
-                    const response: ReactNode = await sendMessage(
-                      action.action,
-                    );
-                    setMessages((messages) => [...messages, response]);
+                    const response = await sendMessage(action.action);
+                    setMessages((messages) => [...messages, response.ui]);
+                    recordUsage(response.usage);
                   }}
                   className="w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
                 >
@@ -122,14 +144,20 @@ export default function Home() {
           onSubmit={async (event) => {
             event.preventDefault();
 
+            if (!input.trim()) {
+              return;
+            }
+
             setMessages((messages) => [
               ...messages,
               <Message key={messages.length} role="user" content={input} />,
             ]);
+            const currentInput = input;
             setInput("");
 
-            const response: ReactNode = await sendMessage(input);
-            setMessages((messages) => [...messages, response]);
+            const response = await sendMessage(currentInput);
+            setMessages((messages) => [...messages, response.ui]);
+            recordUsage(response.usage);
           }}
         >
           <input
@@ -142,6 +170,36 @@ export default function Home() {
             }}
           />
         </form>
+
+        {usageEntries.length > 0 && (
+          <div className="w-full px-4 md:px-0 mx-auto md:max-w-[500px]">
+            <div className="border rounded-lg bg-zinc-50/70 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700 p-4 text-xs text-zinc-600 dark:text-zinc-300 space-y-3">
+              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Token usage per chat
+              </div>
+              <div className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-700">
+                {usageEntries.map((entry, index) => (
+                  <div
+                    key={`usage-${entry.turn}`}
+                    className={`flex flex-col gap-1 py-2 ${index === 0 ? "pt-0" : ""} ${index === usageEntries.length - 1 ? "pb-0" : ""
+                      }`}
+                  >
+                    <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
+                      <span>Chat {entry.turn}</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {entry.totalTokens.toLocaleString()} tokens
+                      </span>
+                    </div>
+                    <div className="text-[11px] uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
+                      prompt {entry.promptTokens.toLocaleString()} · completion{" "}
+                      {entry.completionTokens.toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
