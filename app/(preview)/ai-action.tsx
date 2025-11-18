@@ -9,32 +9,10 @@ import {
 } from "ai/rsc";
 import { ReactNode } from "react";
 import { z } from "zod";
-
-// Shared API configuration helper
-function getProposalesApiConfig() {
-  const apiKey = process.env.PROPOSAL_API_KEY;
-  const companyId = process.env.PROPOSAL_COMPANY_ID;
-  const apiBaseUrl =
-    process.env.PROPOSAL_API_BASE_URL || "https://api.proposales.com";
-
-  if (!apiKey) {
-    throw new Error("PROPOSAL_API_KEY environment variable is not set");
-  }
-
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${apiKey}`,
-    "Content-Type": "application/json",
-  };
-
-  if (companyId) {
-    headers["X-Company-Id"] = companyId;
-  }
-
-  return { headers, apiBaseUrl };
-}
+import { getProposalesApiConfig } from "@/lib/proposal";
 
 // Shared API fetch helper
-async function fetchProposalesApi(endpoint: string) {
+async function fetchProposalesApiEndpoint(endpoint: string) {
   const { headers, apiBaseUrl } = getProposalesApiConfig();
 
   const response = await fetch(`${apiBaseUrl}${endpoint}`, {
@@ -108,6 +86,8 @@ const sendMessage = async (message: string) => {
     system: `\
       - you are a friendly proposal assistant that helps fetch and view proposals from the Proposales API
       - reply in lower case
+      - use the tools provided to fetch and view proposals, content, companies, and attachments
+      - if you need to create a proposal, use the proposalCreate tool
     `,
     messages: messages.get() as CoreMessage[],
     text: async function* ({ content, done }) {
@@ -134,7 +114,7 @@ const sendMessage = async (message: string) => {
           const toolCallId = generateId();
 
           try {
-            const data = await fetchProposalesApi(`/v3/proposals/${uuid}`);
+            const data = await fetchProposalesApiEndpoint(`/v3/proposals/${uuid}`);
 
             messages.done([
               ...(messages.get() as CoreMessage[]),
@@ -229,11 +209,11 @@ const sendMessage = async (message: string) => {
       listContent: {
         description: "List content from the Proposales API content endpoint",
         parameters: z.object({}),
-        generate: async function* ({}) {
+        generate: async function* ({ }) {
           const toolCallId = generateId();
 
           try {
-            const data = await fetchProposalesApi("/v3/content");
+            const data = await fetchProposalesApiEndpoint("/v3/content");
 
             messages.done([
               ...(messages.get() as CoreMessage[]),
@@ -265,10 +245,8 @@ const sendMessage = async (message: string) => {
             const contentItems = Array.isArray(data.data)
               ? data.data
               : Array.isArray(data)
-              ? data
-              : [];
-
-            console.log("contentItems", contentItems);
+                ? data
+                : [];
 
             return (
               <Message
@@ -366,11 +344,11 @@ const sendMessage = async (message: string) => {
       listCompanies: {
         description: "List companies from the Proposales API companies endpoint",
         parameters: z.object({}),
-        generate: async function* ({}) {
+        generate: async function* ({ }) {
           const toolCallId = generateId();
 
           try {
-            const data = await fetchProposalesApi("/v3/companies");
+            const data = await fetchProposalesApiEndpoint("/v3/companies");
 
             messages.done([
               ...(messages.get() as CoreMessage[]),
@@ -402,8 +380,8 @@ const sendMessage = async (message: string) => {
             const companies = Array.isArray(data.data)
               ? data.data
               : Array.isArray(data)
-              ? data
-              : [];
+                ? data
+                : [];
 
             return (
               <Message
@@ -502,11 +480,11 @@ const sendMessage = async (message: string) => {
       listAttachments: {
         description: "List attachments from the Proposales API attachments endpoint",
         parameters: z.object({}),
-        generate: async function* ({}) {
+        generate: async function* ({ }) {
           const toolCallId = generateId();
 
           try {
-            const data = await fetchProposalesApi("/v1/attachments");
+            const data = await fetchProposalesApiEndpoint("/v1/attachments");
 
             messages.done([
               ...(messages.get() as CoreMessage[]),
@@ -538,8 +516,8 @@ const sendMessage = async (message: string) => {
             const attachments = Array.isArray(data.data)
               ? data.data
               : Array.isArray(data)
-              ? data
-              : [];
+                ? data
+                : [];
 
             return (
               <Message

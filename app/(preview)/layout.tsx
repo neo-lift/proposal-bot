@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Metadata } from "next";
 import { Toaster } from "sonner";
-import { AI } from "./actions";
+import { AI } from "./ai-action";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://proposales.com/"),
