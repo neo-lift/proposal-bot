@@ -1,4 +1,4 @@
-import { Message, TextStreamMessage } from "@/components/message";
+import { Message, TextStreamMessage } from "@/components/shared/message";
 import { openai } from "@ai-sdk/openai";
 import { CoreMessage, generateId } from "ai";
 import {
@@ -10,6 +10,12 @@ import {
 import { ReactNode } from "react";
 import { z } from "zod";
 import { getProposalesApiConfig } from "@/lib/proposal";
+import { ProposalViewCard } from "@/components/chatbox/proposal-view-card";
+import { ContentListCard } from "@/components/chatbox/contents-list-card";
+import { CompaniesListCard } from "@/components/chatbox/companies-list-card";
+import { AttachmentsListCard } from "@/components/chatbox/attachments-list-card";
+import { ProposalCreateSuccessCard } from "@/components/chatbox/proposal-create-success-card";
+import { ErrorCard } from "@/components/shared/error-card";
 
 type TokenUsage = {
   promptTokens: number;
@@ -158,20 +164,12 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="space-y-2">
-                    <div className="font-semibold">{data.data?.title || "Proposal"}</div>
-                    {data.data?.description_html && (
-                      <div
-                        className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: data.data.description_html,
-                        }}
-                      />
-                    )}
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Status: {data.data?.status || "Unknown"} | UUID: {uuid}
-                    </div>
-                  </div>
+                  <ProposalViewCard
+                    title={data.data?.title}
+                    descriptionHtml={data.data?.description_html}
+                    status={data.data?.status}
+                    uuid={uuid}
+                  />
                 }
               />
             );
@@ -209,9 +207,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="text-red-600 dark:text-red-400">
-                    Error fetching proposal: {errorMessage}
-                  </div>
+                  <ErrorCard message={errorMessage} context="Error fetching proposal" />
                 }
               />
             );
@@ -264,49 +260,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="space-y-3">
-                    <div className="font-semibold">Content List</div>
-                    {contentItems.length > 0 ? (
-                      <div className="space-y-2">
-                        {contentItems.map((item: any, index: number) => {
-                          const title = getStringValue(item.title);
-                          const name = getStringValue(item.name);
-                          const description = getStringValue(item.description);
-
-                          return (
-                            <div
-                              key={item.uuid || item.id || index}
-                              className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-800"
-                            >
-                              {title && (
-                                <div className="font-medium">{title}</div>
-                              )}
-                              {name && (
-                                <div className="font-medium">{name}</div>
-                              )}
-                              {item.uuid && (
-                                <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                  UUID: {item.uuid}
-                                </div>
-                              )}
-                              {description && (
-                                <div className="text-sm mt-2 text-zinc-600 dark:text-zinc-300">
-                                  {description}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No content items found
-                      </div>
-                    )}
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500">
-                      Total items: {contentItems.length}
-                    </div>
-                  </div>
+                  <ContentListCard items={contentItems} />
                 }
               />
             );
@@ -344,9 +298,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="text-red-600 dark:text-red-400">
-                    Error fetching content: {errorMessage}
-                  </div>
+                  <ErrorCard message={errorMessage} context="Error fetching content" />
                 }
               />
             );
@@ -399,53 +351,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="space-y-3">
-                    <div className="font-semibold">Companies List</div>
-                    {companies.length > 0 ? (
-                      <div className="space-y-2">
-                        {companies.map((company: any, index: number) => {
-                          const name = getStringValue(company.name);
-                          const address = getStringValue(company.address);
-
-                          return (
-                            <div
-                              key={company.uuid || company.id || index}
-                              className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-800"
-                            >
-                              {name && (
-                                <div className="font-medium">{name}</div>
-                              )}
-                              {company.uuid && (
-                                <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                  UUID: {company.uuid}
-                                </div>
-                              )}
-                              {company.email && (
-                                <div className="text-sm mt-1 text-zinc-600 dark:text-zinc-300">
-                                  Email: {company.email}
-                                </div>
-                              )}
-                              {address && (
-                                <div className="text-sm mt-1 text-zinc-600 dark:text-zinc-300">
-                                  Address: {address}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No companies found
-                      </div>
-                    )}
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500">
-                      Total companies: {companies.length}
-                    </div>
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500">
-                      {latestUsage?.totalTokens && latestUsage?.totalTokens > 0 && <span>Total tokens: {latestUsage?.totalTokens.toLocaleString()}</span>}
-                    </div>
-                  </div>
+                  <CompaniesListCard companies={companies} />
                 }
               />
             );
@@ -483,9 +389,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="text-red-600 dark:text-red-400">
-                    Error fetching companies: {errorMessage}
-                  </div>
+                  <ErrorCard message={errorMessage} context="Error fetching companies" />
                 }
               />
             );
@@ -538,60 +442,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="space-y-3">
-                    <div className="font-semibold">Attachments List</div>
-                    {attachments.length > 0 ? (
-                      <div className="space-y-2">
-                        {attachments.map((attachment: any, index: number) => {
-                          const name = getStringValue(attachment.name);
-                          const filename = getStringValue(attachment.filename);
-
-                          return (
-                            <div
-                              key={attachment.uuid || attachment.id || index}
-                              className="border rounded-lg p-3 bg-zinc-50 dark:bg-zinc-800"
-                            >
-                              {name && (
-                                <div className="font-medium">{name}</div>
-                              )}
-                              {filename && (
-                                <div className="font-medium">{filename}</div>
-                              )}
-                              {attachment.uuid && (
-                                <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                  UUID: {attachment.uuid}
-                                </div>
-                              )}
-                              {attachment.type && (
-                                <div className="text-sm mt-1 text-zinc-600 dark:text-zinc-300">
-                                  Type: {attachment.type}
-                                </div>
-                              )}
-                              {attachment.size && (
-                                <div className="text-sm mt-1 text-zinc-600 dark:text-zinc-300">
-                                  Size: {attachment.size} bytes
-                                </div>
-                              )}
-                              {attachment.url && (
-                                <div className="text-xs mt-1 text-blue-600 dark:text-blue-400">
-                                  <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                                    View attachment
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No attachments found
-                      </div>
-                    )}
-                    <div className="text-xs text-zinc-400 dark:text-zinc-500">
-                      Total attachments: {attachments.length}
-                    </div>
-                  </div>
+                  <AttachmentsListCard attachments={attachments} />
                 }
               />
             );
@@ -629,9 +480,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="text-red-600 dark:text-red-400">
-                    Error fetching attachments: {errorMessage}
-                  </div>
+                  <ErrorCard message={errorMessage} context="Error fetching attachments" />
                 }
               />
             );
@@ -697,24 +546,11 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="space-y-2">
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      Proposal created successfully!
-                    </div>
-                    {data.data?.title && (
-                      <div className="font-medium">{data.data.title}</div>
-                    )}
-                    {data.data?.uuid && (
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        UUID: {data.data.uuid}
-                      </div>
-                    )}
-                    {data.data?.status && (
-                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Status: {data.data.status}
-                      </div>
-                    )}
-                  </div>
+                  <ProposalCreateSuccessCard
+                    title={data.data?.title}
+                    uuid={data.data?.uuid}
+                    status={data.data?.status}
+                  />
                 }
               />
             );
@@ -752,9 +588,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <div className="text-red-600 dark:text-red-400">
-                    Error creating proposal: {errorMessage}
-                  </div>
+                  <ErrorCard message={errorMessage} context="Error creating proposal" />
                 }
               />
             );

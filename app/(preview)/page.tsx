@@ -2,11 +2,12 @@
 
 import { ReactNode, useRef, useState } from "react";
 import { useActions } from "ai/rsc";
-import { Message } from "@/components/message";
-import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
+import { Message } from "@/components/shared/message";
+import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import type { AI } from "./ai-action";
+import { SUGGESTED_ACTIONS } from "@/data/suggestion";
 
 type TokenUsage = {
   promptTokens: number;
@@ -29,28 +30,7 @@ export default function Home() {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
-  const suggestedActions = [
-    {
-      title: "List",
-      label: "all content",
-      action: "List all content",
-    },
-    {
-      title: "List",
-      label: "all companies",
-      action: "List all companies",
-    },
-    {
-      title: "Create",
-      label: "a new proposal",
-      action: "Create a new proposal",
-    },
-    {
-      title: "View",
-      label: "a proposal by UUID",
-      action: "View a proposal",
-    },
-  ];
+  const suggestedActions = SUGGESTED_ACTIONS;
 
   const recordUsage = (usage: TokenUsage | null | undefined) => {
     if (!usage) return;
@@ -105,7 +85,7 @@ export default function Home() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-2 w-full px-4 md:px-0 mx-auto md:max-w-[500px] mb-4">
-          {messages.length === 0 &&
+          {suggestedActions.length > 0 &&
             suggestedActions.map((action, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
