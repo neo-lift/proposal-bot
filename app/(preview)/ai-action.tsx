@@ -577,7 +577,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                     stepNumber={1}
                     title="Analyzing RFP Requirements"
                     status="completed"
-                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                    content={<RfpAnalysisDisplay analysis={analysis} />}
                   />
                   <ChainOfThoughtStep
                     stepNumber={2}
@@ -642,7 +642,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                       stepNumber={1}
                       title="Analyzing RFP Requirements"
                       status="completed"
-                      content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                      content={<RfpAnalysisDisplay analysis={analysis} />}
                     />
                     <ChainOfThoughtStep
                       stepNumber={2}
@@ -692,7 +692,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                     stepNumber={1}
                     title="Analyzing RFP Requirements"
                     status="completed"
-                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                    content={<RfpAnalysisDisplay analysis={analysis} />}
                   />
                   <ChainOfThoughtStep
                     stepNumber={2}
@@ -743,7 +743,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                     stepNumber={1}
                     title="Analyzing RFP Requirements"
                     status="completed"
-                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                    content={<RfpAnalysisDisplay analysis={analysis} />}
                   />
                   <ChainOfThoughtStep
                     stepNumber={2}
@@ -827,7 +827,7 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                       stepNumber={1}
                       title="Analyzing RFP Requirements"
                       status="completed"
-                      content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                      content={<RfpAnalysisDisplay analysis={analysis} />}
                     />
                     <ChainOfThoughtStep
                       stepNumber={2}

@@ -1,5 +1,4 @@
 interface RfpAnalysisDisplayProps {
-  rfp: any;
   analysis: {
     attendees?: number;
     meetingDays?: number;
@@ -12,7 +11,7 @@ interface RfpAnalysisDisplayProps {
   };
 }
 
-export function RfpAnalysisDisplay({ rfp, analysis }: RfpAnalysisDisplayProps) {
+export function RfpAnalysisDisplay({ analysis }: RfpAnalysisDisplayProps) {
   return (
     <div className="space-y-3 bg-zinc-50 dark:bg-zinc-800 p-3 rounded-lg">
       <div className="font-medium text-zinc-900 dark:text-zinc-100">
