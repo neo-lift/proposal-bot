@@ -4,9 +4,9 @@ import { Toaster } from "sonner";
 import { AI } from "./actions";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://ai-sdk-preview-rsc-genui.vercel.dev"),
-  title: "Generative User Interfaces Preview",
-  description: "Generative UI with React Server Components and Vercel AI SDK",
+  metadataBase: new URL("https://proposales.com/"),
+  title: "Proposales™ AI Assistant",
+  description: "Proposales™ AI Assistant for creating and managing proposals",
 };
 
 export default function RootLayout({

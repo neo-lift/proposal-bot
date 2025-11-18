@@ -18,23 +18,25 @@ export default function Home() {
     useScrollToBottom<HTMLDivElement>();
 
   const suggestedActions = [
-    { title: "Create", label: "a new proposal", action: "Create a new proposal" },
-    { title: "View all", label: "my proposals", action: "View all my proposals" },
-    { title: "Show me", label: "my contracts", action: "Show me my contracts" },
     {
-      title: "Set up",
-      label: "webhooks for automation",
-      action: "Set up webhooks for automation",
+      title: "List",
+      label: "all content",
+      action: "List all content",
     },
     {
-      title: "Explore",
-      label: "API endpoints",
-      action: "Explore API endpoints",
+      title: "List",
+      label: "all companies",
+      action: "List all companies",
+    },
+    {
+      title: "Create",
+      label: "a new proposal",
+      action: "Create a new proposal",
     },
     {
       title: "View",
-      label: "data entities",
-      action: "View data entities",
+      label: "a proposal by UUID",
+      action: "View a proposal",
     },
   ];
 
