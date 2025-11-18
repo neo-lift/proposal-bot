@@ -9,16 +9,18 @@ import {
 } from "ai/rsc";
 import { ReactNode } from "react";
 import { z } from "zod";
-import {
-  generateProposalPayload,
-  getProposalesApiConfig,
-} from "@/lib/proposal";
+import { generateProposalPayload, getProposalesApiConfig } from "@/lib/proposal";
 import { ProposalViewCard } from "@/components/chatbox/proposal-view-card";
 import { ContentListCard } from "@/components/chatbox/contents-list-card";
 import { CompaniesListCard } from "@/components/chatbox/companies-list-card";
 import { AttachmentsListCard } from "@/components/chatbox/attachments-list-card";
 import { ProposalCreateSuccessCard } from "@/components/chatbox/proposal-create-success-card";
 import { ErrorCard } from "@/components/shared/error-card";
+import { ChainOfThoughtCard } from "@/components/chatbox/chain-of-thought-card";
+import { ChainOfThoughtStep, StepStatus } from "@/components/chatbox/chain-of-thought-step";
+import { RfpAnalysisDisplay } from "@/components/chatbox/rfp-analysis-display";
+import { RequirementsMappingDisplay } from "@/components/chatbox/requirement-mapping-display";
+import { PricingCalculationDisplay } from "@/components/chatbox/pricing-calculation-display";
 
 type TokenUsage = {
   promptTokens: number;
@@ -516,16 +518,280 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
         }),
         generate: async function* ({ rfp }) {
           const toolCallId = generateId();
+
+          // Step 1: Analyze RFP to get the requirements
+          yield (
+            <Message
+              role="assistant"
+              content={
+                <ChainOfThoughtCard title="Creating Proposal">
+                  <ChainOfThoughtStep
+                    stepNumber={1}
+                    title="Analyzing RFP Requirements"
+                    status="in_progress"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={2}
+                    title="Mapping Requirements to Products"
+                    status="pending"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={3}
+                    title="Calculating Pricing"
+                    status="pending"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={4}
+                    title="Generating Final Proposal"
+                    status="pending"
+                  />
+                </ChainOfThoughtCard>
+              }
+            />
+          );
+
+          // Extract analysis from RFP
+          const analysis = {
+            eventType: rfp.event.eventType,
+            attendees: rfp.event.guestCount,
+            rooms: rfp.event.roomsNeeded,
+            startDate: rfp.event.startDate,
+            endDate: rfp.event.endDate,
+            meetingSpaces: rfp.preferences?.meetingSpaces,
+            catering: rfp.preferences?.catering,
+            meetingDays: rfp.event.startDate && rfp.event.endDate
+              ? Math.ceil((new Date(rfp.event.endDate).getTime() - new Date(rfp.event.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
+              : undefined,
+          };
+
+          // Simulate processing delay
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Step 1 Complete
+          yield (
+            <Message
+              role="assistant"
+              content={
+                <ChainOfThoughtCard title="Creating Proposal">
+                  <ChainOfThoughtStep
+                    stepNumber={1}
+                    title="Analyzing RFP Requirements"
+                    status="completed"
+                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={2}
+                    title="Mapping Requirements to Products"
+                    status="in_progress"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={3}
+                    title="Calculating Pricing"
+                    status="pending"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={4}
+                    title="Generating Final Proposal"
+                    status="pending"
+                  />
+                </ChainOfThoughtCard>
+              }
+            />
+          );
+
+          // Step 2: Generate proposal payload
+          let proposalPayload;
           try {
-            const proposalPayload = await generateProposalPayload({ rfp });
-            const data = await postProposalesApi(
-              "/v3/proposals",
-              proposalPayload,
+            proposalPayload = await generateProposalPayload({ rfp });
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : "Unknown error occurred";
+
+            messages.done([
+              ...(messages.get() as CoreMessage[]),
+              {
+                role: "assistant",
+                content: [
+                  {
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: "proposalCreate",
+                    args: { rfp },
+                  },
+                ],
+              },
+              {
+                role: "tool",
+                content: [
+                  {
+                    type: "tool-result",
+                    toolName: "proposalCreate",
+                    toolCallId,
+                    result: { error: errorMessage },
+                  },
+                ],
+              },
+            ]);
+
+            return (
+              <Message
+                role="assistant"
+                content={
+                  <ChainOfThoughtCard title="Creating Proposal">
+                    <ChainOfThoughtStep
+                      stepNumber={1}
+                      title="Analyzing RFP Requirements"
+                      status="completed"
+                      content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={2}
+                      title="Mapping Requirements to Products"
+                      status="error"
+                      error={errorMessage}
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={3}
+                      title="Calculating Pricing"
+                      status="pending"
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={4}
+                      title="Generating Final Proposal"
+                      status="pending"
+                    />
+                  </ChainOfThoughtCard>
+                }
+              />
             );
+          }
 
-            console.log("proposalPayload", proposalPayload);
-            console.log("data", data);
+          // Extract mapping information
+          const mapping = {
+            template: proposalPayload.title_md || "Conference Template",
+            selectedProducts: proposalPayload.blocks?.map((block: any, index: number) => ({
+              name: `Product ${index + 1}`,
+              contentId: block.content_id || "N/A",
+            })) || [],
+            selectedAttachments: proposalPayload.attachments?.map((att: any) => ({
+              name: att.name || "Attachment",
+              url: att.url || "",
+            })) || [],
+          };
 
+          // Simulate processing delay
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Step 2 Complete: Show Requirements Mapping
+          yield (
+            <Message
+              role="assistant"
+              content={
+                <ChainOfThoughtCard title="Creating Proposal">
+                  <ChainOfThoughtStep
+                    stepNumber={1}
+                    title="Analyzing RFP Requirements"
+                    status="completed"
+                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={2}
+                    title="Mapping Requirements to Products"
+                    status="completed"
+                    content={<RequirementsMappingDisplay mapping={mapping} />}
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={3}
+                    title="Calculating Pricing"
+                    status="in_progress"
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={4}
+                    title="Generating Final Proposal"
+                    status="pending"
+                  />
+                </ChainOfThoughtCard>
+              }
+            />
+          );
+
+          // Step 3: Calculate estimated pricing
+          const estimatedPricing = {
+            items: [
+              { name: "Meeting Room", quantity: analysis.meetingDays || 1, unitPrice: 500, total: (analysis.meetingDays || 1) * 500 },
+              { name: "Accommodation", quantity: analysis.rooms || 0, unitPrice: 150, total: (analysis.rooms || 0) * 150 },
+              ...(analysis.catering ? [{ name: "Catering", quantity: analysis.attendees || 0, unitPrice: 45, total: (analysis.attendees || 0) * 45 }] : []),
+            ],
+            subtotal: 0,
+            tax: 0,
+            total: 0,
+          };
+
+          estimatedPricing.subtotal = estimatedPricing.items.reduce((sum, item) => sum + (item.total || 0), 0);
+          estimatedPricing.tax = estimatedPricing.subtotal * 0.1;
+          estimatedPricing.total = estimatedPricing.subtotal + estimatedPricing.tax;
+
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Step 3 Complete: Show Pricing Calculation
+          yield (
+            <Message
+              role="assistant"
+              content={
+                <ChainOfThoughtCard title="Creating Proposal">
+                  <ChainOfThoughtStep
+                    stepNumber={1}
+                    title="Analyzing RFP Requirements"
+                    status="completed"
+                    content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={2}
+                    title="Mapping Requirements to Products"
+                    status="completed"
+                    content={<RequirementsMappingDisplay mapping={mapping} />}
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={3}
+                    title="Calculating Pricing"
+                    status="completed"
+                    content={
+                      <PricingCalculationDisplay
+                        items={estimatedPricing.items}
+                        subtotal={estimatedPricing.subtotal}
+                        tax={estimatedPricing.tax}
+                        total={estimatedPricing.total}
+                      />
+                    }
+                  />
+                  <ChainOfThoughtStep
+                    stepNumber={4}
+                    title="Generating Final Proposal"
+                    status="in_progress"
+                  />
+                </ChainOfThoughtCard>
+              }
+            />
+          );
+
+          // Step 4: Create proposal via API
+          try {
+            const { headers, apiBaseUrl } = getProposalesApiConfig();
+
+            const response = await fetch(`${apiBaseUrl}/v3/proposals`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify(proposalPayload),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(
+                `Failed to create: ${response.status} ${response.statusText} - ${errorText}`,
+              );
+            }
+
+            const data = await response.json();
             messages.done([
               ...(messages.get() as CoreMessage[]),
               {
@@ -556,10 +822,44 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               <Message
                 role="assistant"
                 content={
-                  <ProposalCreateSuccessCard
-                    uuid={data.proposal?.uuid}
-                    url={data.proposal?.url}
-                  />
+                  <ChainOfThoughtCard title="Creating Proposal">
+                    <ChainOfThoughtStep
+                      stepNumber={1}
+                      title="Analyzing RFP Requirements"
+                      status="completed"
+                      content={<RfpAnalysisDisplay rfp={rfp} analysis={analysis} />}
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={2}
+                      title="Mapping Requirements to Products"
+                      status="completed"
+                      content={<RequirementsMappingDisplay mapping={mapping} />}
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={3}
+                      title="Calculating Pricing"
+                      status="completed"
+                      content={
+                        <PricingCalculationDisplay
+                          items={estimatedPricing.items}
+                          subtotal={estimatedPricing.subtotal}
+                          tax={estimatedPricing.tax}
+                          total={estimatedPricing.total}
+                        />
+                      }
+                    />
+                    <ChainOfThoughtStep
+                      stepNumber={4}
+                      title="Generating Final Proposal"
+                      status="completed"
+                      content={
+                        <ProposalCreateSuccessCard
+                          uuid={data.proposal?.uuid}
+                          url={data.proposal?.url}
+                        />
+                      }
+                    />
+                  </ChainOfThoughtCard>
                 }
               />
             );
