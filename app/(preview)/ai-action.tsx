@@ -523,6 +523,9 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
               proposalPayload,
             );
 
+            console.log("proposalPayload", proposalPayload);
+            console.log("data", data);
+
             messages.done([
               ...(messages.get() as CoreMessage[]),
               {
@@ -554,9 +557,8 @@ const sendMessage = async (message: string): Promise<SendMessageResult> => {
                 role="assistant"
                 content={
                   <ProposalCreateSuccessCard
-                    title={data.data?.title}
-                    uuid={data.data?.uuid}
-                    status={data.data?.status}
+                    uuid={data.proposal?.uuid}
+                    url={data.proposal?.url}
                   />
                 }
               />
